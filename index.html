@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meniu Cocktailuri Interactiv</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin:0; padding:0;
+  background: linear-gradient(270deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
+  background-size: 800% 800%;
+  animation: gradientBG 20s ease infinite;
+}
+@keyframes gradientBG {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+header{
+  background-color: rgba(0,0,0,0.5);
+  color:white;
+  padding:15px 0;
+  text-align:center;
+  font-size:2em;
+  font-weight:bold;
+  letter-spacing:1px;
+}
+.qr-top{
+  text-align:center;
+  margin:20px 0;
+}
+.qr-top img{
+  width:150px;
+  height:150px;
+  border-radius:12px;
+  box-shadow:0 4px 8px rgba(0,0,0,0.3);
+}
+#cocktail-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:15px;
+  padding:20px;
+}
+.card{
+  background-color:rgba(255,255,255,0.9);
+  border-radius:12px;
+  box-shadow:0 4px 8px rgba(0,0,0,0.2);
+  cursor:pointer;
+  transition: transform 0.2s, box-shadow 0.3s;
+  text-align:center;
+  padding-bottom:10px;
+}
+.card:hover{
+  animation:pulse 0.6s ease-in-out;
+  box-shadow:0 0 20px rgba(230,57,70,0.8),0 0 40px rgba(230,57,70,0.4);
+}
+@keyframes pulse{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.05)}
+  100%{transform:scale(1)}
+}
+.card img{
+  width:90%;
+  height:130px;
+  object-fit:cover;
+  border-radius:12px;
+  margin:10px auto 0 auto;
+  transition: transform 0.3s ease;
+}
+.card:hover img{
+  transform: scale(1.1) rotate(2deg);
+}
+.card-clicked{
+  animation: cardPulseClick 0.3s ease;
+}
+@keyframes cardPulseClick{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+  100%{transform:scale(1)}
+}
+.modal{
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.6);
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+.modal-content{
+  background-color:white;
+  padding:20px;
+  border-radius:12px;
+  width:90%;
+  max-width:500px;
+  position:relative;
+  animation: modalZoom 0.4s ease forwards;
+}
+@keyframes modalZoom{
+  0%{transform:scale(0.5); opacity:0}
+  50%{transform:scale(1.1); opacity:0.9}
+  100%{transform:scale(1); opacity:1}
+}
+.close-btn{
+  position:absolute;
+  top:10px;
+  right:15px;
+  font-size:1.5em;
+  cursor:pointer;
+  color:#333;
+}
+.modal-content img{
+  width:100%;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+.modal-content h2{
+  margin:10px 0;
+  color:#e63946;
+}
+.modal-content ul li{
+  list-style-type:disc;
+  margin-left:20px;
+  margin-bottom:5px;
+}
+.modal-content p{
+  margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<header>Meniu Cocktailuri 🍸</header>
+
+<div class="qr-top">
+<h3>Scanează codul QR pentru meniul complet:</h3>
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://username.github.io/meniu-cocktailuri/" alt="QR Meniu Principal">
+</div>
+
+<div id="cocktail-list"></div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <h2 id="modal-title"></h2>
+    <img id="modal-img" src="" alt="">
+    <h3>Ingrediente:</h3>
+    <ul id="modal-ingredients"></ul>
+    <h3>Mod de preparare:</h3>
+    <p id="modal-recipe"></p>
+  </div>
+</div>
+
+<script>
+const cocktails = [
+{name:"Mojito",img:"https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",ingredients:["Rom alb","Lime","Mentă","Apă minerală","Zahăr"],recipe:"Zdrobește menta cu zahărul și sucul de lime, adaugă romul, gheața și completează cu apă minerală."},
+{name:"Pina Colada",img:"https://www.thecocktaildb.com/images/media/drink/cpf4j51504371346.jpg",ingredients:["Rom","Lapte de cocos","Ananas"],recipe:"Amestecă toate ingredientele cu gheață în blender până devine cremos."},
+{name:"Cosmopolitan",img:"https://www.thecocktaildb.com/images/media/drink/kpsajh1504368362.jpg",ingredients:["Vodka","Triple Sec","Suc de lime","Suc de merișoare"],recipe:"Amestecă ingredientele cu gheață și servește într-un pahar de cocktail."},
+{name:"Cuba Libre",img:"https://www.thecocktaildb.com/images/media/drink/ck6d0p1504388696.jpg",ingredients:["Rom","Cola","Lime"],recipe:"Umple paharul cu gheață, adaugă romul și completează cu Cola. Stoarce lime deasupra."},
+{name:"Tequila Sunrise",img:"https://www.thecocktaildb.com/images/media/drink/quqyqp1480879103.jpg",ingredients:["Tequila","Suc de portocale","Grenadină"],recipe:"Pune tequila și sucul de portocale, apoi adaugă grenadina încet pentru efect de stratificare."},
+{name:"Campari Orange",img:"https://www.thecocktaildb.com/images/media/drink/07iep51598719977.jpg",ingredients:["Campari","Suc de portocale"],recipe:"Umple un pahar cu gheață, adaugă Campari și sucul de portocale."},
+{name:"Rum Sunset",img:"https://www.thecocktaildb.com/images/media/drink/xtuyqv1472669026.jpg",ingredients:["Rom","Suc de portocale","Grenadină"],recipe:"Amestecă romul și sucul, apoi toarnă grenadina încet pentru un efect frumos."},
+{name:"Blue Lagoon",img:"https://www.thecocktaildb.com/images/media/drink/5wm4zo1582579154.jpg",ingredients:["Vodka","Blue Curacao","Limonadă"],recipe:"Amestecă vodka și Blue Curacao, apoi completează cu limonadă și gheață."},
+{name:"Daiquiri",img:"https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg",ingredients:["Rom alb","Suc de lime","Zahăr"],recipe:"Agită ingredientele cu gheață și servește într-un pahar rece."},
+{name:"Paloma",img:"https://www.thecocktaildb.com/images/media/drink/samm5j1513706393.jpg",ingredients:["Tequila","Suc de grepfrut","Apă minerală"],recipe:"Amestecă tequila și sucul, apoi completează cu apă minerală."},
+{name:"Long Island Sunrise",img:"https://www.thecocktaildb.com/images/media/drink/rswqpy1441246518.jpg",ingredients:["Vodka","Tequila","Rom alb","Gin","Triple Sec","Suc de portocale","Grenadină"],recipe:"Amestecă toate ingredientele, apoi adaugă grenadina pentru efect de stratificare."},
+{name:"Malibu Pina Colada",img:"https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",ingredients:["Malibu","Lapte de cocos","Ananas"],recipe:"Amestecă ingredientele într-un blender cu gheață."},
+{name:"Malibu Bay Breeze",img:"https://www.thecocktaildb.com/images/media/drink/yrffts1582478490.jpg",ingredients:["Malibu","Suc de merișoare","Suc de ananas"],recipe:"Amestecă toate ingredientele într-un pahar cu gheață."},
+{name:"Malibu Cola",img:"https://www.thecocktaildb.com/images/media/drink/yr0j9x1504820309.jpg",ingredients:["Malibu","Coca-Cola"],recipe:"Toarnă Malibu peste gheață și completează cu Cola."},
+{name:"Malibu Sunset",img:"https://www.thecocktaildb.com/images/media/drink/xkwvtu1468923148.jpg",ingredients:["Malibu","Suc de portocale","Grenadină"],recipe:"Amestecă Malibu și sucul de portocale, apoi adaugă grenadina pentru efect de stratificare."},
+{name:"Sex on the Beach",img:"https://www.thecocktaildb.com/images/media/drink/lijtw51551455217.jpg",ingredients:["Vodka","Peach Schnapps","Suc de merișoare","Suc de portocale"],recipe:"Amestecă toate ingredientele cu gheață."},
+{name:"White Lady",img:"https://www.thecocktaildb.com/images/media/drink/jofsaz1504352995.jpg",ingredients:["Gin","Triple Sec","Suc de lămâie"],recipe:"Agită ingredientele cu gheață și servește într-un pahar de cocktail."},
+{name:"Pink Lady",img:"https://www.thecocktaildb.com/images/media/drink/yb1j5l1582473972.jpg",ingredients:["Gin","Grenadină","Albuș de ou"],recipe:"Amestecă ingredientele cu gheață și servește într-un pahar de cocktail."},
+{name:"Apple Pie",img:"https://www.thecocktaildb.com/images/media/drink/yrffts1582478490.jpg",ingredients:["Vodka","Lichior de mere","Scorțișoară"],recipe:"Amestecă ingredientele cu gheață."},
+{name:"Long Island Ice Tea",img:"https://www.thecocktaildb.com/images/media/drink/wx7hsg1504370510.jpg",ingredients:["Vodka","Tequila","Rom alb","Gin","Triple Sec","Suc de lămâie","Coca-Cola"],recipe:"Amestecă toate ingredientele cu gheață."},
+{name:"Mai Tai",img:"https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",ingredients:["Rom alb","Rom negru","Triple Sec","Orgeat","Lime"],recipe:"Amestecă ingredientele cu gheață și servește cu lime."},
+{name:"Manhattan",img:"https://www.thecocktaildb.com/images/media/drink/hz7p4t1589575281.jpg",ingredients:["Whiskey","Vermouth roșu","Angostura Bitters"],recipe:"Agită ingredientele cu gheață și strecoară într-un pahar de cocktail."},
+{name:"Americano",img:"https://www.thecocktaildb.com/images/media/drink/trwruu1441254418.jpg",ingredients:["Campari","Vermouth roșu","Apă minerală"],recipe:"Amestecă ingredientele cu gheață."},
+{name:"Kamikaze Shot",img:"https://www.thecocktaildb.com/images/media/drink/6jr5v11504373971.jpg",ingredients:["Vodka","Triple Sec","Suc de lime"],recipe:"Agită ingredientele și servește într-un pahar de shot."},
+{name:"Revolver",img:"https://www.thecocktaildb.com/images/media/drink/8kxbvq1504356495.jpg",ingredients:["Bourbon","Lichior de cafea","Angostura Bitters"],recipe:"Amestecă ingredientele cu gheață și servește."},
+{name:"Vesper",img:"https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg",ingredients:["Gin","Vodka","Lillet Blanc"],recipe:"Agită ingredientele cu gheață și servește într-un pahar de cocktail."},
+{name:"Brave Bull",img:"https://www.thecocktaildb.com/images/media/drink/59nihp1582481894.jpg",ingredients:["Tequila","Kahlua"],recipe:"Amestecă ingredientele cu gheață și servește."},
+{name:"Moscow Mule",img:"https://www.thecocktaildb.com/images/media/drink/3pylqc1504370988.jpg",ingredients:["Vodka","Ginger Beer","Lime"],recipe:"Amestecă ingredientele într-un pahar cu gheață."},
+{name:"Blue Hawaiian",img:"https://www.thecocktaildb.com/images/media/drink/urpyqs1454512333.jpg",ingredients:["Rum","Blue Curacao","Suc de ananas","Lapte de cocos"],recipe:"Amestecă toate ingredientele cu gheață."},
+{name:"Blue Diablo",img:"https://www.thecocktaildb.com/images/media/drink/5wm4zo1582579154.jpg",ingredients:["Vodka","Blue Curacao","Limonadă"],recipe:"Amestecă ingredientele și servește cu gheață."},
+{name:"Green Demon",img:"https://www.thecocktaildb.com/images/media/drink/3m8a5v1582476666.jpg",ingredients:["Gin","Lichior de mentă","Lime"],recipe:"Amestecă ingredientele și servește."},
+{name:"Blue Monday",img:"https://www.thecocktaildb.com/images/media/drink/9azqvi1582478686.jpg",ingredients:["Vodka","Blue Curacao","Lemonade"],recipe:"Amestecă ingredientele cu gheață."},
+{name:"Blue Margarita",img:"https://www.thecocktaildb.com/images/media/drink/bry4qh1582751040.jpg",ingredients:["Tequila","Blue Curacao","Suc de lime"],recipe:"Agită ingredientele cu gheață."},
+{name:"Last Drop",img:"https://www.thecocktaildb.com/images/media/drink/yk70e91606771208.jpg",ingredients:["Whiskey","Lime","Ginger Ale"],recipe:"Amestecă ingredientele și servește."},
+{name:"Melon Sunrise",img:"https://www.thecocktaildb.com/images/media/drink/w68d7p1582483387.jpg",ingredients:["Vodka","Lichior de pepene","Suc de portocale"],recipe:"Amestecă ingredientele cu gheață."},
+{name:"The Queens Park Hotel Super Cocktail",img:"https://www.thecocktaildb.com/images/media/drink/x7p6j71504886604.jpg",ingredients:["Rom","Lime","Zahăr","Angostura Bitters"],recipe:"Amestecă ingredientele cu gheață."},
+{name:"Blue Bicycle",img:"https://www.thecocktaildb.com/images/media/drink/vuqpwr1468876052.jpg",ingredients:["Vodka","Blue Curacao","Lime"],recipe:"Amestecă ingredientele cu gheață."},
+{name:"Baby Blue",img:"https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",ingredients:["Vodka","Blue Curacao","Limonadă"],recipe:"Amestecă vodka și Blue Curacao cu gheață, completează cu limonadă și servește într-un pahar rece."}
+{name:"Negroni", img:"https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg", ingredients:["Gin","Vermouth roșu","Campari"], recipe:"Amestecă toate ingredientele cu gheață și servește într-un pahar scurt cu gheață."}
+
+];
+
+const list=document.getElementById("cocktail-list");
+const modal=document.getElementById("modal");
+const modalTitle=document.getElementById("modal-title");
+const modalImg=document.getElementById("modal-img");
+const modalIngredients=document.getElementById("modal-ingredients");
+const modalRecipe=document.getElementById("modal-recipe");
+const closeBtn=document.querySelector(".close-btn");
+
+function displayCocktails(){
+  list.innerHTML="";
+  cocktails.forEach(c=>{
+    const card=document.createElement("div");
+    card.className="card";
+    card.innerHTML=`<img src="${c.img}" alt="${c.name}"><h3>${c.name}</h3>`;
+    card.addEventListener("click",()=>openModal(c,card));
+    list.appendChild(card);
+  });
+}
+
+function openModal(cocktail,card){
+  card.classList.add("card-clicked");
+  card.addEventListener("animationend",()=>{card.classList.remove("card-clicked");});
+  modalTitle.textContent=cocktail.name;
+  modalImg.src=cocktail.img;
+  modalIngredients.innerHTML="";
+  cocktail.ingredients.forEach(ing=>{
+    const li=document.createElement("li");
+    li.textContent=ing;
+    modalIngredients.appendChild(li);
+  });
+  modalRecipe.textContent=cocktail.recipe;
+  modal.style.display="flex";
+}
+
+closeBtn.addEventListener("click",()=>modal.style.display="none");
+window.addEventListener("click",e=>{if(e.target==modal) modal.style.display="none";});
+
+displayCocktails();
+</script>
+
+</body>
+</html>
+
+
+
+
+
